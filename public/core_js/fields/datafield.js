@@ -15,6 +15,7 @@ class DataField extends DatasetComponent{
         this._types = {
             text: TextField,
             select: SelectField,
+            // datetime: undefined,
         }
         this._type = this._types[params.type || 'text'];
 

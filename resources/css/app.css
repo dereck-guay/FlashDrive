@@ -1,3 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+a:not(.sidebar-link) {
+    @apply text-blue-500 hover:text-blue-700 block;
+}
+
+.sidebar-link {
+    @apply block py-4 w-full text-center text-xl hover:bg-gradient-to-br from-slate-700 to-slate-900;
+}
+
+.btn {
+    @apply flex items-center gap-x-1 justify-center px-2 py-1 text-white rounded focus:outline;
+}
+
+.btn-primary {
+    @apply bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 focus:outline-blue-500;
+}
+
+.btn-emerald {
+    @apply bg-gradient-to-br from-emerald-500 to-emerald-700 hover:from-emerald-600 hover:to-emerald-800 focus:outline-emerald-500;
+}
+
+.btn-danger {
+    @apply bg-gradient-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 focus:outline-red-500;
+}
+
+.btn-secondary {
+    @apply bg-gradient-to-br from-slate-500 to-slate-700 hover:from-slate-600 hover:to-slate-800 focus:outline-slate-500;
+}
+
+.content-width {
+    @apply text-center;
+    width: 1%;
+    white-space: nowrap;
+}
+
+table.datagrid {
+    @apply w-full rounded-t overflow-hidden;
+}
+
+table.datagrid, table.datagrid tbody tr, table.datagrid td {
+    @apply border;
+    border-collapse: collapse;
+}
+
+table.datagrid thead {
+    @apply text-left text-white rounded-t overflow-hidden;
+}
+
+table.datagrid tbody {
+    @apply text-sm;
+}
+
+table.datagrid th, table.datagrid td {
+    @apply px-2 py-1;
+}
+
+table.datagrid tbody tr:hover {
+    @apply bg-slate-100;
+}
+
+.datagrid_selected {
+    @apply bg-gradient-to-br from-slate-100 to-slate-300;
+}
+
+.dataset_field_container {
+}
+
+.dataset_field_container .dataset_field_label {
+    @apply block;
+}
+
+.dataset_field_container input,
+.dataset_field_container select,
+.dataset_field_container textarea {
+    @apply block w-full rounded border-slate-300 py-1 px-2 text-sm;
+}
+
+.form-group {
+    @apply rounded border-slate-300 border overflow-hidden flex items-center outline-blue-500;
+}
+
+.form-group:focus-within {
+    @apply outline-1 outline;
+}
+
+.form-group .prepend {
+    @apply rounded-l bg-slate-200 text-slate-700 h-full px-2 flex items-center justify-center border;
+}
+
+.form-field {
+    @apply block w-full border-0 py-1 px-2 text-sm focus:outline-0 focus:border-0 focus:ring-0;
+}

@@ -27,6 +27,16 @@ var formatting = {
         return `${value}reps`;
     },
 
+    money: function(value) {
+        if (value == undefined || value == '') return '';
+
+        if (value >= 0) {
+            return `<span class="font-semibold text-emerald-500">+${value}$</span>`;
+        }
+
+        return `<span class="font-semibold text-red-600">${value}$</span>`;
+    },
+
     // Dates
     cuteDateTime: function(value) {
         let date = moment(value);

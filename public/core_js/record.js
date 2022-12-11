@@ -7,10 +7,19 @@ class Record {
             this[property] = record[property];
     }
 
+    revert() {
+        for (let property in this.record) {
+            this[property] = this.record[property];
+            this.dataset.onRecordChange(this, property, this.record[property]);
+        }
+    }
+
     getAll() {
         let recordData = {};
-        for (let property in this.record)
-            recordData[property] = this[property];
+        for (let property in this)
+            if (! (this[property] instanceof Function) && property != 'dataset' && property != 'record')
+                recordData[property] = this[property];
+
         return recordData;
     }
 
@@ -57,8 +66,6 @@ class Record {
     }
 
     set(property, newValue) {
-        if (! property in this) return;
-
         this[property] = newValue;
         this.dataset.onRecordChange(this, property, newValue);
     }

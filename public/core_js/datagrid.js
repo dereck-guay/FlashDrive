@@ -39,6 +39,8 @@ class DataGrid extends DatasetComponent {
         if (cellToReplace == undefined) return;
 
         let column = this._structure.columns.find(c => c.field == field);
+        if (column == undefined) return;
+
         let newCell = this._buildCell(column, record);
         cellToReplace.replaceWith(newCell);
     }
@@ -78,6 +80,18 @@ class DataGrid extends DatasetComponent {
         this.containerElement.append(this._tableElement);
     }
 
+    setRowEditable() {
+        let record = this.dataset.getRecord();
+        if (record == undefined) return;
+
+        let rowToReplace = document.querySelector(`tr[dataset-record-id="${record.id}"`);
+        if (rowToReplace == undefined) return;
+
+        let newEditableRow = this._buildEditableRow(record);
+        rowToReplace.replaceWith(newEditableRow);
+        this._select(record.id);
+    }
+
     // Private Methods
     _buildTable() {
         let { tableClass, tableCss } = this._structure;
@@ -96,8 +110,9 @@ class DataGrid extends DatasetComponent {
     }
 
     _buildThead() {
-        let { columns } = this._structure;
+        let { columns, theadClass } = this._structure;
         let thead = document.createElement('thead');
+        thead.className = theadClass || 'text-white bg-gradient-to-br from-blue-500 to-blue-700';
         let tr = document.createElement('tr');
 
         for (let { title, headerClass, headerCss, selectable } of columns) {
@@ -172,6 +187,64 @@ class DataGrid extends DatasetComponent {
         return tr;
     }
 
+    _buildEditableRow(record) {
+        let { columns, rowClass, rowCss } = this._structure;
+        let tr = document.createElement('tr');
+
+        tr.setAttribute('dataset-record-id', record[this.dataset.primaryKey]);
+        tr.addEventListener('click', e => this.onRowClick(e.currentTarget));
+        tr.addEventListener('dblclick', e => {
+            if (this.onRowDblClick instanceof Function) this.onRowDblClick(e);
+        });
+
+        // tr Class
+        if ( rowClass instanceof Function) tr.className = rowClass(dataset);
+        else if (typeof(rowClass) == 'string') tr.className = rowClass;
+
+        // tr Css
+        if ( rowCss instanceof Function) tr.style = rowCss(dataset);
+        else if (typeof(rowCss) == 'string') tr.style = rowCss;
+
+        for (let column of columns) {
+            let { field, name, cellClass, cellCss, editable } = column;
+            if (editable == undefined) {
+                tr.append(this._buildCell(column, record));
+                continue;
+            }
+
+            let td = document.createElement('td');
+
+            td.setAttribute('dataset-record-field', field || name);
+
+            // td Class
+            if ( cellClass instanceof Function) td.className = cellClass(dataset);
+            else if (typeof(cellClass) == 'string') td.className = cellClass;
+
+            // td Css
+            if ( cellCss instanceof Function) td.style = cellCss(dataset);
+            else if (typeof(cellCss) == 'string') td.style = cellCss;
+
+            if (selectable) {
+                td.setAttribute('dataset-record-field', 'selectable');
+                let checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                td.append(checkbox);
+                return td;
+            }
+
+            let dataField = new DataField({
+                dataset: this.dataset,
+                containerElement: td,
+                format: 'cell',
+                ...editable,
+            });
+
+            tr.append(td);
+        }
+
+        return tr;
+    }
+
     _buildCell(column, record) {
         let { field, name, cellClass, cellCss, display, format, selectable } = column;
         let td = document.createElement('td');
@@ -213,7 +286,6 @@ class DataGrid extends DatasetComponent {
     }
 
     _checkAll(isChecked) {
-        console.log()
         let checkboxes = this.containerElement.querySelectorAll('td[dataset-record-field="selectable"] input[type="checkbox"]');
         for (let checkbox of checkboxes)
             checkbox.checked = isChecked;

@@ -1,7 +1,6 @@
 class DatasetField {
     initialize() {
-        if (this.dataset != undefined)
-            this.dataset.addChildComponent(this);
+        if (this.dataset != undefined) this.dataset.addChildComponent(this);
         this.render();
     }
 
@@ -38,7 +37,16 @@ class DatasetField {
 
         let { record } = dto;
         if (record == undefined) return;
-        console.log(this);
         this.setValue(record.get(this.edit));
+    }
+
+    datasetOnValueChange(dto) {
+        if (document.activeElement == this.inputElement) return;
+
+        let { field, newValue, record } = dto;
+        if (this.edit != field) return;
+        if (this.recordId && this.recordId != record.get('id')) return;
+
+        this.setValue(newValue);
     }
 }

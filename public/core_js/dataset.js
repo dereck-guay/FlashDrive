@@ -78,11 +78,11 @@ class Dataset {
     }
 
     delete(recordId) {
-        this._delete(recordId);
+        return this._delete(recordId);
     }
 
     save() {
-        this._save();
+        return this._save();
     }
 
     setPosition(recordId) {
@@ -151,6 +151,12 @@ class Dataset {
     // Private Methods
     _cancel() {
         if (! this.isStatus('edit')) return;
+
+        for (let recordId in this._editPool)
+            this.getRecord(recordId).revert();
+
+        this._editPool = {};
+        this.setStatus('browse');
     }
 
     _detectBindings() {
@@ -215,7 +221,7 @@ class Dataset {
                 id: deletedRecordPosition
             }),
         });
-        await deleteRes.json();
+        let deleteJson = await deleteRes.json();
 
         this._records.splice(this._records.findIndex(r => r[this.primaryKey] == deletedRecord[this.primaryKey]), 1);
         this._propagateEvent('OnDelete', {
@@ -224,6 +230,7 @@ class Dataset {
 
         this.setPosition(this._lastPosition);
         this._lastPosition = undefined;
+        return deleteJson;
     }
 
     async _save() {
@@ -233,6 +240,7 @@ class Dataset {
         for (let recordId in this._editPool)
             recordsToSave.push(this.getRecord(recordId).getAll());
 
+
         let saveRes = await fetch('/dataset/update',{
             method: 'POST',
             headers: this._ajaxHeaders,
@@ -241,11 +249,13 @@ class Dataset {
                 records: recordsToSave,
             }),
         });
-        await saveRes.json();
+        let saveJson = await saveRes.json();
 
         this._editPool = { };
         this.setStatus('browse');
         this._propagateEvent('OnSave');
+
+        return saveJson;
     }
 
     _propagateEvent(event, dto = { }) {

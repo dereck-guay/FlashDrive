@@ -5,6 +5,7 @@ class DataForm extends DatasetComponent {
         // Private Properties
         this._title = params.title;
         this._fields = params.fields;
+        this._noBtn = params.noBtn;
 
         // Callbacks
         this.onRowClicked = params.onRowClick;
@@ -37,6 +38,10 @@ class DataForm extends DatasetComponent {
             });
 
             bodyElement.append(dataformFieldContainer);
+        }
+
+        if (! this._noBtn) {
+
         }
 
         let footerElement = document.createElement('div');
