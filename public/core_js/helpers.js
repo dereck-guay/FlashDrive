@@ -29,7 +29,8 @@ class Dialog {
 
         this.dialogContainerElement.id = this._id;
         this.dialogContainerElement.className = 'dialog-container hidden';
-        containerDiv.className = 'flex items-center justify-center h-full';
+        containerDiv.className = 'flex items-center justify-center';
+        containerDiv.style = 'height: 100vh;';
         this.dialogElement.className = 'dialog';
         this.dialogElement.style.width = this.width;
         this.HeaderElement.className = 'dialog-header';

@@ -67,6 +67,7 @@ table.datagrid tbody tr:hover {
 }
 
 .dataset_field_container {
+    @apply w-full;
 }
 
 .dataset_field_container .dataset_field_label {
@@ -77,6 +78,12 @@ table.datagrid tbody tr:hover {
 .dataset_field_container select,
 .dataset_field_container textarea {
     @apply block w-full rounded border-slate-300 py-1 px-2 text-sm;
+}
+
+.dataset_cell_field_container input,
+.dataset_cell_field_container select,
+.dataset_cell_field_container textarea {
+    @apply block w-full rounded bg-white text-sm px-2 py-0 m-0 border-0;
 }
 
 .form-group {
@@ -93,4 +100,35 @@ table.datagrid tbody tr:hover {
 
 .form-field {
     @apply block w-full border-0 py-1 px-2 text-sm focus:outline-0 focus:border-0 focus:ring-0;
+}
+
+
+.dialog-container {
+    @apply absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.dialog-header, .dialog-body, .dialog-footer {
+    @apply p-2 bg-white;
+}
+
+.dialog-header {
+    @apply rounded-t;
+}
+
+.dialog-body {
+    @apply border-t border-b;
+}
+
+.dialog-footer {
+    @apply rounded-b;
+}
+
+
+.account-card {
+    @apply bg-gradient-to-br from-emerald-500 to-emerald-600 text-white w-full p-2 rounded;
 }

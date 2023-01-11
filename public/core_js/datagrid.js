@@ -10,6 +10,7 @@ class DataGrid extends DatasetComponent {
         this._footElement = undefined;
         this._structure = params.structure;
         this._isPrepend = params.isPrepend || false;
+        this._editRecordId = undefined;
 
         // Callbacks
         this.onRowClicked = params.onRowClick;
@@ -37,6 +38,7 @@ class DataGrid extends DatasetComponent {
         let { field, record } = dto;
         let cellToReplace = document.querySelector(`tr[dataset-record-id="${record.id}"] td[dataset-record-field="${field}"]`);
         if (cellToReplace == undefined) return;
+        if (cellToReplace.querySelector('input, select, textarea') != undefined) return;
 
         let column = this._structure.columns.find(c => c.field == field);
         if (column == undefined) return;
@@ -47,6 +49,9 @@ class DataGrid extends DatasetComponent {
 
     datasetOnInsert(dto) {
         let newRow = this._buildRow(dto.record);
+        let emptyRowIndicator = this._bodyElement.querySelector('.datagrid-is-empty');
+        console.log(emptyRowIndicator)
+        if (emptyRowIndicator != undefined) emptyRowIndicator.remove();
 
         if (this._isPrepend) {
             this._bodyElement.prepend(newRow);
@@ -60,6 +65,8 @@ class DataGrid extends DatasetComponent {
         let recordId = dto.record.get('id');
         let rowToDelete = document.querySelector(`tr[dataset-record-id="${recordId}"]`);
         rowToDelete.remove();
+        if (this.dataset.getAllRecords().length <= 0)
+            this._bodyElement.innerHTML = `<tr class="datagrid-is-empty"><td colspan="${this._structure.columns.length}">Wow such empty...</td></tr>`;
     }
 
     //Public Methods
@@ -80,16 +87,28 @@ class DataGrid extends DatasetComponent {
         this.containerElement.append(this._tableElement);
     }
 
-    setRowEditable() {
-        let record = this.dataset.getRecord();
-        if (record == undefined) return;
-
-        let rowToReplace = document.querySelector(`tr[dataset-record-id="${record.id}"`);
+    setRowEdit(recordId) {
+        let record = this.dataset.getRecord(recordId);
+        let rowToReplace = document.querySelector(`tr[dataset-record-id="${recordId}"]`);
         if (rowToReplace == undefined) return;
 
-        let newEditableRow = this._buildEditableRow(record);
-        rowToReplace.replaceWith(newEditableRow);
-        this._select(record.id);
+        this._editRecordId = recordId;
+        let newRow = this._buildRow(record);
+        rowToReplace.replaceWith(newRow);
+        if (recordId == this.dataset.getPosition()) this._select(recordId);
+        return newRow;
+    }
+
+    updateRow(recordId) {
+        let record = this.dataset.getRecord(recordId);
+        let rowToReplace = document.querySelector(`tr[dataset-record-id="${recordId}"]`);
+        if (rowToReplace == undefined) return;
+
+        this._editRecordId = undefined;
+        let newRow = this._buildRow(record);
+        rowToReplace.replaceWith(newRow);
+        if (recordId == this.dataset.getPosition()) this._select(recordId);
+        return newRow;
     }
 
     // Private Methods
@@ -155,8 +174,12 @@ class DataGrid extends DatasetComponent {
     _buildBody() {
         let tbody = document.createElement('tbody');
         let records = this.dataset.getAllRecords();
-        for (let recordId in records)
-            tbody.append(this._buildRow(records[recordId]));
+
+        if (records.length <= 0)
+            tbody.innerHTML = `<tr class="datagrid-is-empty"><td colspan="${this._structure.columns.length}">Wow such empty...</td></tr>`;
+
+        for (let record of records)
+            tbody.append(this._buildRow(record));
 
 
         tbody.classList.add('datagrid_body');
@@ -187,69 +210,11 @@ class DataGrid extends DatasetComponent {
         return tr;
     }
 
-    _buildEditableRow(record) {
-        let { columns, rowClass, rowCss } = this._structure;
-        let tr = document.createElement('tr');
-
-        tr.setAttribute('dataset-record-id', record[this.dataset.primaryKey]);
-        tr.addEventListener('click', e => this.onRowClick(e.currentTarget));
-        tr.addEventListener('dblclick', e => {
-            if (this.onRowDblClick instanceof Function) this.onRowDblClick(e);
-        });
-
-        // tr Class
-        if ( rowClass instanceof Function) tr.className = rowClass(dataset);
-        else if (typeof(rowClass) == 'string') tr.className = rowClass;
-
-        // tr Css
-        if ( rowCss instanceof Function) tr.style = rowCss(dataset);
-        else if (typeof(rowCss) == 'string') tr.style = rowCss;
-
-        for (let column of columns) {
-            let { field, name, cellClass, cellCss, editable } = column;
-            if (editable == undefined) {
-                tr.append(this._buildCell(column, record));
-                continue;
-            }
-
-            let td = document.createElement('td');
-
-            td.setAttribute('dataset-record-field', field || name);
-
-            // td Class
-            if ( cellClass instanceof Function) td.className = cellClass(dataset);
-            else if (typeof(cellClass) == 'string') td.className = cellClass;
-
-            // td Css
-            if ( cellCss instanceof Function) td.style = cellCss(dataset);
-            else if (typeof(cellCss) == 'string') td.style = cellCss;
-
-            if (selectable) {
-                td.setAttribute('dataset-record-field', 'selectable');
-                let checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                td.append(checkbox);
-                return td;
-            }
-
-            let dataField = new DataField({
-                dataset: this.dataset,
-                containerElement: td,
-                format: 'cell',
-                ...editable,
-            });
-
-            tr.append(td);
-        }
-
-        return tr;
-    }
-
     _buildCell(column, record) {
-        let { field, name, cellClass, cellCss, display, format, selectable } = column;
+        let { field, name, cellClass, cellCss, display, format, selectable, editable } = column;
         let td = document.createElement('td');
 
-        td.setAttribute('dataset-record-field', field || name);
+        td.setAttribute('dataset-record-field', name || field);
 
         // td Class
         if ( cellClass instanceof Function) td.className = cellClass(dataset);
@@ -258,6 +223,46 @@ class DataGrid extends DatasetComponent {
         // td Css
         if ( cellCss instanceof Function) td.style = cellCss(dataset);
         else if (typeof(cellCss) == 'string') td.style = cellCss;
+
+        if (editable != undefined && (editable.always || this._editRecordId == record.get('id'))) {
+            if (field.indexOf('|') != -1) { // Multiple Fields
+                let fieldArr = field.split('|');
+                let flexDiv = document.createElement('div');
+                flexDiv.className = 'flex gap-x-1';
+                for (let fieldEl of fieldArr) {
+                    let { type, settings } = editable[fieldEl] || {};
+                    let fieldDiv = document.createElement('div');
+                    let dataField = new DataField({
+                        dataset: this.dataset,
+                        containerElement: fieldDiv,
+                        edit: fieldEl,
+                        format: 'cell',
+                        type: type || 'text',
+                        recordId: record.get('id'),
+                        settings: settings,
+                    });
+
+                    flexDiv.append(fieldDiv);
+                }
+                td.append(flexDiv);
+                return td;
+            }
+
+            let { type, settings } = editable;
+            let fieldDiv = document.createElement('div');
+            let dataField = new DataField({
+                dataset: this.dataset,
+                containerElement: fieldDiv,
+                edit: field,
+                format: 'cell',
+                type: type || 'text',
+                recordId: record.get('id'),
+                settings: settings,
+            });
+
+            td.append(fieldDiv);
+            return td;
+        }
 
         if (selectable) {
             td.setAttribute('dataset-record-field', 'selectable');
@@ -270,6 +275,7 @@ class DataGrid extends DatasetComponent {
         if (display instanceof Function) {
             let displayResult = display(td, record, this.dataset, this);
             if (displayResult != undefined) td.innerHTML = displayResult;
+            return td;
         } else if (typeof(display) == 'string') td.innerHTML = display;
         if (display != undefined) return td;
 
@@ -281,7 +287,9 @@ class DataGrid extends DatasetComponent {
     _select(recordId) {
         let selectedRows = this._bodyElement.querySelectorAll('.datagrid_selected');
         for (let selectedRow of selectedRows) selectedRow.classList.remove('datagrid_selected');
+
         let rowToSelect = this._bodyElement.querySelector(`tr[dataset-record-id="${recordId}"]`);
+        if (rowToSelect == undefined) return;
         rowToSelect.classList.add('datagrid_selected');
     }
 

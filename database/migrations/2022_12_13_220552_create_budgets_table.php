@@ -14,16 +14,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('budget_transactions', function (Blueprint $table) {
+        Schema::create('budgets', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class)->constrained();
-            $table->foreignId('budget_id')->nullable();
-            $table->foreignId('from_account_id')->nullable();
-            $table->foreignId('to_account_id')->nullable();
             $table->string('title')->nullable();
-            $table->string('description')->nullable();
+            $table->string('icon')->nullable();
+            $table->string('color')->nullable();
+            $table->longText('description')->nullable();
             $table->float('amount')->nullable();
-            $table->json('repeat_data')->nullable();
             $table->timestamps();
         });
     }
@@ -35,6 +33,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('budget_transactions');
+        Schema::dropIfExists('budgets');
     }
 };

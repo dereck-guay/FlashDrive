@@ -6,6 +6,7 @@ class DataField extends DatasetComponent{
         this.edit = params.edit;
         this.id = '_' + Math.random().toString(36).substring(2, 10);
         this.onChange = params.onChange;
+        this.recordId = params.recordId;
 
         // Private Properties
         this._settings = params.settings;
@@ -52,6 +53,12 @@ class DataField extends DatasetComponent{
     }
 
     _cellRender() {
+        this.containerElement.classList.add('dataset_cell_field_container');
 
+        this._inputComponent = new this._type({
+            parent: this,
+            containerElement: this.containerElement,
+            ...this._settings,
+        });
     }
 }

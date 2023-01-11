@@ -30,11 +30,18 @@ var formatting = {
     money: function(value) {
         if (value == undefined || value == '') return '';
 
-        if (value >= 0) {
+        if (value >= 0)
             return `<span class="font-semibold text-emerald-500">+${value}$</span>`;
-        }
-
         return `<span class="font-semibold text-red-600">${value}$</span>`;
+    },
+
+    barIfEmpty: function(value) {
+        if (value == undefined || value == '') return '-';
+        return value;
+    },
+
+    toFloat(value) {
+        return parseFloat(value);
     },
 
     // Dates

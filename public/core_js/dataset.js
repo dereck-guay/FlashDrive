@@ -1,5 +1,8 @@
 class Dataset {
     initialize(records) {
+        this._lastPosition = undefined;
+        this._position = undefined;
+
         this._records = [];
         for (let record of records)
             this._records.push(new Record(record, this));
@@ -32,6 +35,13 @@ class Dataset {
             'Access-Control-Allow-Headers' : 'X-Requested-With, Content-Type, X-Auth-Token, Origin, Authorization'
 
         };
+
+        // Callbacks
+        this.onSave = params.onSave;
+        this.onValueChange = params.onValueChange;
+        this.onInsert = params.onInsert;
+        this.onCancel = params.onCancel;
+        this.onDelete = params.onDelete;
 
         // Loading
         if (params.records != undefined) {
@@ -148,6 +158,13 @@ class Dataset {
         }
     }
 
+    addFilters(filters) {
+        for (let key in filters)
+            this._filters[key] = filters[key];
+
+        this.refresh();
+    }
+
     // Private Methods
     _cancel() {
         if (! this.isStatus('edit')) return;
@@ -178,7 +195,7 @@ class Dataset {
             headers: this._ajaxHeaders,
             body: JSON.stringify({
                 model: this.model,
-                filters: this.filters,
+                filters: this._filters,
             }),
         });
 
@@ -240,7 +257,6 @@ class Dataset {
         for (let recordId in this._editPool)
             recordsToSave.push(this.getRecord(recordId).getAll());
 
-
         let saveRes = await fetch('/dataset/update',{
             method: 'POST',
             headers: this._ajaxHeaders,
@@ -255,6 +271,7 @@ class Dataset {
         this.setStatus('browse');
         this._propagateEvent('OnSave');
 
+        if (this.onSave instanceof Function) this.onSave(this);
         return saveJson;
     }
 

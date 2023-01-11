@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class BudgetTransaction extends Model
+class Budget extends Model
 {
     use HasFactory;
 
@@ -14,9 +14,6 @@ class BudgetTransaction extends Model
     public static function list($filters = []) {
         $query = self::where('user_id', \Auth::id());
 
-        if (! empty(@$filters['keywords']))
-            $query->where('title', 'LIKE', "%{$filters['keywords']}%");
-
-        return $query->orderBy('created_at', 'DESC')->get();
+        return $query->get();
     }
 }

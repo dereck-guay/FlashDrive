@@ -24,16 +24,16 @@ class Record {
     }
 
     get(property, formatting) {
-        if (! property in this || property == undefined) return '';
+        if (! property in this || property == undefined) return formatter(formatting, '');
         if (property.indexOf('.') != -1) {
             let [relationName, field, ...others] = property.split('.');
             let relation = this.dataset.relation[relationName];
 
-            if (relation == undefined) return '';
+            if (relation == undefined) return formatter(formatting, '');
             let { localKey, foreignKey, dataset } = relation;
             let subRecord = dataset.getRecord(this.get(localKey));
 
-            if (subRecord == undefined) return '';
+            if (subRecord == undefined) return formatter(formatting, '');
             return subRecord.get([field, ...others].join('.'), formatting);
         }
 
@@ -62,10 +62,11 @@ class Record {
         let value = this[property];
 
         if (formatting != undefined) return formatter(formatting, value);
-        return value || '';
+        return formatter(formatting, value);
     }
 
     set(property, newValue) {
+        if (newValue == undefined) newValue = null;
         this[property] = newValue;
         this.dataset.onRecordChange(this, property, newValue);
     }

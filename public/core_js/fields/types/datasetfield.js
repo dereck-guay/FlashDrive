@@ -1,7 +1,7 @@
 class DatasetField {
     initialize() {
-        if (this.dataset != undefined) this.dataset.addChildComponent(this);
         this.render();
+        if (this.dataset != undefined) this.dataset.addChildComponent(this);
     }
 
     constructor(parent, containerElement) {
@@ -32,6 +32,13 @@ class DatasetField {
     }
 
     // Dataset Events
+    datasetOnReady(dto) {
+        if (this.recordId == undefined) return;
+        let record = this.dataset.getRecord(this.recordId);
+        if (record == undefined) return;
+        this.setValue(record.get(this.edit));
+    }
+
     datasetOnPositionChange(dto) {
         if (this.recordId != undefined) return;
 
